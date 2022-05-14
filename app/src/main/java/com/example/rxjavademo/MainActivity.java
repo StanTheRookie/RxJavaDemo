@@ -5,7 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -18,6 +22,7 @@ import io.reactivex.Observer;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
@@ -29,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
 
     private ImageView image;
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +94,31 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
 
+                //需求2：加水印， 使用下面网上找到的加水印函数
+                .map(new Function<Bitmap, Bitmap>() {
+
+                    @Override
+                    public Bitmap apply(Bitmap bitmap) throws Exception {
+                        Paint paint = new Paint();
+                        paint.setColor(Color.RED);
+                        paint.setTextSize(88);
+                        Bitmap bitmapWithWaterPrint = drawTexttoBitmap(bitmap, "STAN | Agora.io", paint, 88, 88);
+                        return bitmapWithWaterPrint;
+                    }
+                })
+
+                //需求3：日志记录，从上层拿到一个Bitmap， 给下层也传递同样的Bitmap, 这一层不对Bitmap做处理，只是打印一个需求而已。
+                .map(new Function<Bitmap, Bitmap>() {
+
+
+
+                    @Override
+                    public Bitmap apply(Bitmap bitmap) throws Exception {
+                        Log.e(TAG, "The time you upload the image: " + System.currentTimeMillis() );
+                        return bitmap;  //只是打印了日志记录，对Bitmap 什么都没操作。
+                    }
+                })
+
                 //给上面的 map 第二层分配异步线程，让其进行图片下载操作。
                 .subscribeOn(Schedulers.io())//分配异步线程
 
@@ -139,6 +170,36 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        
+    }
+
+    //从网络上找到的加水印函数
+    private final Bitmap drawTexttoBitmap(Bitmap bitmap, String text, Paint paint, int paddingLeft, int paddingTop) {
+        Bitmap.Config bitmapConfig = bitmap.getConfig();
+        paint.setDither(true); //获取更清晰的图像采样
+        paint.setFilterBitmap(true); //过滤
+        if (bitmapConfig ==null){
+            bitmapConfig= Bitmap.Config.ARGB_8888;
+        }
+        bitmap = bitmap.copy(bitmapConfig,true);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawText(text,paddingLeft,paddingTop,paint);
+        return bitmap;
+    }
+
+
+    public void action(View view) {
+        //创建一个String数组，使用RxJava中 fromArray 操作符打印数组元素
+        String [] strings = {"American Airlines", "United Airlines", "Delta"};
+
+        //定义RxJava起点
+        Observable.fromArray(strings)
+
+                //关联终点
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(String s) throws Exception {
+                        Log.d(TAG, "accept: " + s);
+                    }
+                });
     }
 }
