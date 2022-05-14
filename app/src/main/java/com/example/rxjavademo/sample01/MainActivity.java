@@ -1,4 +1,4 @@
-package com.example.rxjavademo;
+package com.example.rxjavademo.sample01;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -13,13 +13,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.example.rxjavademo.R;
+
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
